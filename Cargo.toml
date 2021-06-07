@@ -10,8 +10,13 @@ edition = "2018"
 chrono = { version = "0.4.19", features = ["serde"] }
 log = "0.4.14"
 reqwest = { version = "0.11.3", features = ["json", "trust-dns"] }
-rust_decimal = {version = "1.14.1", features = ["serde-float"] }
+rust_decimal = { version = "1.14.1", features = ["serde-str"] }
 rust_decimal_macros = "1.14.1"
-serde = { version = "1.0.126", features = ["derive"] }
 strum = { version = "0.21", features = ["derive"] }
 strum_macros = "0.21"
+serde = { version = "1.0.126", features = ["derive"] }
+serde_json = "1.0.64"
+
+[dev-dependencies]
+env_logger = "0.8.3"
+tokio = { version = "1.6.1", features = ["full"] }

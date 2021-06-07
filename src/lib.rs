@@ -14,9 +14,11 @@
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
 use chrono::{Date, DateTime, Utc};
+use log::debug;
 use serde::{Deserialize, Serialize};
 use std::convert::AsRef;
 use strum_macros::AsRefStr;
+use rust_decimal::Decimal;
 
 const MB_URL: &str = "https://www.mercadobitcoin.net/api/";
 
@@ -87,23 +89,30 @@ pub struct TradesParameter {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-/// Resposta do método Ticker
-pub struct TickerResp {
+/// Ticker
+pub struct Ticker {
     /// Maior preço unitário de negociação das últimas 24 horas.
-    pub high: f32,
+    pub high: Decimal,
     /// Menor preço unitário de negociação das últimas 24 horas.
-    pub low: f32,
+    pub low: Decimal,
     /// Quantidade negociada nas últimas 24 horas.
-    pub vol: f32,
+    pub vol: Decimal,
     /// Preço unitário da última negociação.
-    pub last: f32,
+    pub last: Decimal,
     /// Maior preço de oferta de compra das últimas 24 horas.
-    pub buy: f32,
+    pub buy: Decimal,
     /// Menor preço de oferta de venda das últimas 24 horas.
-    pub sell: f32,
+    pub sell: Decimal,
     /// Data e hora da informação em Era Unix.
-    pub date: DateTime<Utc>,
+    pub date: u64,
 }
+
+#[derive(Debug, Clone, Deserialize)]
+/// Resposta do método Ticker
+struct TickerResp {
+    ticker: Ticker,
+}
+
 
 #[derive(Debug, Clone)]
 pub struct OrderBookResp {
@@ -148,32 +157,45 @@ impl MercadoBitcoin {
     }
 
     /// Retorna informações com o resumo das últimas 24 horas de negociações.
-    pub async fn ticker(&self, coin: Coin) -> Result<TickerResp, reqwest::Error> {
+    pub async fn ticker(
+        &self,
+        coin: Coin,
+    ) -> Result<Ticker, reqwest::Error> {
         let coin_str = coin.as_ref();
         let method_str = "ticker";
         let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
 
         let resp = self.call(&url).await?;
         let ticker_resp: TickerResp = resp.json().await?;
-        Ok(ticker_resp)
+        Ok(ticker_resp.ticker)
     }
 
     /// Livro de negociações, ordens abertas de compra e venda.
     ///
-    /// Livro de ofertas é composto por duas listas: (1) uma lista com as ofertas de compras ordenadas pelo maior valor; (2) uma lista com as ofertas de venda ordenadas pelo menor valor. O livro mostra até 1000 ofertas de compra e até 1000 ofertas de venda.
-    /// Uma oferta é constituída por uma ou mais ordens, sendo assim, a quantidade da oferta é o resultado da soma das quantidades das ordens de mesmo preço unitário. Caso uma oferta represente mais de uma ordem, a prioridade de execução se dá com base na data de criação da ordem, da mais antiga para a mais nova.
+    /// Livro de ofertas é composto por duas listas: (1) uma lista com as
+    /// ofertas de compras ordenadas pelo maior valor; (2) uma lista com as
+    /// ofertas de venda ordenadas pelo menor valor. O livro mostra até 1000
+    /// ofertas de compra e até 1000 ofertas de venda.
+    ///
+    /// Uma oferta é constituída por uma ou mais ordens, sendo assim, a
+    /// quantidade da oferta é o resultado da soma das quantidades das ordens
+    /// de mesmo preço unitário. Caso uma oferta represente mais de uma ordem,
+    /// a prioridade de execução se dá com base na data de criação da ordem, da
+    /// mais antiga para a mais nova.
     pub fn order_book(&self, coin: Coin) {}
 
-    /// Histórico de operações executadas
+    /// Histórico de negociações realizadas.
     pub fn trades(&self, coin: Coin) {}
 
     pub fn day_summary(&self, coin: Coin) {}
 
-    async fn call(&self, url: &str) -> Result<reqwest::Response, reqwest::Error> {
-        let resp = reqwest::Client::new()
-            .get(url)
-            .send()
-            .await?;
+    async fn call(
+        &self,
+        url: &str,
+    ) -> Result<reqwest::Response, reqwest::Error> {
+        debug!("Request: {}", url);
+
+        let resp = reqwest::Client::new().get(url).send().await?;
         Ok(resp)
     }
 }
