@@ -86,7 +86,7 @@ pub struct TradesParameter {
     pub to: Option<u64>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Deserialize)]
 /// Resposta do método Ticker
 pub struct TickerResp {
     /// Maior preço unitário de negociação das últimas 24 horas.
@@ -149,7 +149,7 @@ impl MercadoBitcoin {
 
     /// Retorna informações com o resumo das últimas 24 horas de negociações.
     pub async fn ticker(&self, coin: Coin) -> Result<TickerResp, reqwest::Error> {
-        let coin_str = coin.as_str();
+        let coin_str = coin.as_ref();
         let method_str = "ticker";
         let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
 
@@ -169,11 +169,12 @@ impl MercadoBitcoin {
 
     pub fn day_summary(&self, coin: Coin) {}
 
-    async fn call(&self, url: &str) Result<reqwest::Response, reqwest::Error> {
-        reqwest::Client::new()
-            get(url)
+    async fn call(&self, url: &str) -> Result<reqwest::Response, reqwest::Error> {
+        let resp = reqwest::Client::new()
+            .get(url)
             .send()
-            .await?
+            .await?;
+        Ok(resp)
     }
 }
 
