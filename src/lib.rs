@@ -15,10 +15,10 @@
 //
 use chrono::{Date, DateTime, Utc};
 use log::debug;
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use std::convert::AsRef;
 use strum_macros::AsRefStr;
-use rust_decimal::Decimal;
 
 const MB_URL: &str = "https://www.mercadobitcoin.net/api/";
 
@@ -113,11 +113,18 @@ struct TickerResp {
     ticker: Ticker,
 }
 
-
-#[derive(Debug, Clone)]
-pub struct OrderBookResp {
-    pub asks: Vec<Vec<f32>>,
-    pub bids: Vec<Vec<f32>>,
+#[derive(Debug, Clone, Deserialize)]
+pub struct OrderBook {
+    /// Lista de ofertas de venda, ordenadas do menor para o maior preço.
+    ///
+    /// Índice 0 preço unitário da oferta de compra.
+    /// Índice 1 quantidade da oferta de compra.
+    pub asks: Vec<Vec<Decimal>>,
+    ///  Lista de ofertas de compras, ordenadas do maior para o menor preço.
+    ///
+    /// Índice 0 preço unitário da oferta de compra.
+    /// Índice 1 quantidade da oferta de compra.
+    pub bids: Vec<Vec<Decimal>>,
 }
 
 #[derive(Debug, Clone)]
@@ -157,16 +164,14 @@ impl MercadoBitcoin {
     }
 
     /// Retorna informações com o resumo das últimas 24 horas de negociações.
-    pub async fn ticker(
-        &self,
-        coin: Coin,
-    ) -> Result<Ticker, reqwest::Error> {
+    pub async fn ticker(&self, coin: Coin) -> Result<Ticker, reqwest::Error> {
         let coin_str = coin.as_ref();
         let method_str = "ticker";
         let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
 
         let resp = self.call(&url).await?;
         let ticker_resp: TickerResp = resp.json().await?;
+
         Ok(ticker_resp.ticker)
     }
 
@@ -182,7 +187,19 @@ impl MercadoBitcoin {
     /// de mesmo preço unitário. Caso uma oferta represente mais de uma ordem,
     /// a prioridade de execução se dá com base na data de criação da ordem, da
     /// mais antiga para a mais nova.
-    pub fn order_book(&self, coin: Coin) {}
+    pub async fn order_book(
+        &self,
+        coin: Coin,
+    ) -> Result<OrderBook, reqwest::Error> {
+        let coin_str = coin.as_ref();
+        let method_str = "orderbook";
+        let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
+
+        let resp = self.call(&url).await?;
+        let ob_resp: OrderBook = resp.json().await?;
+
+        Ok(ob_resp)
+    }
 
     /// Histórico de negociações realizadas.
     pub fn trades(&self, coin: Coin) {}
