@@ -25,61 +25,114 @@ const MB_URL: &str = "https://www.mercadobitcoin.net/api/";
 static APP_USER_AGENT: &str =
     concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
-#[derive(AsRefStr, Debug, Clone)]
 /// Acrônimo da moeda digital.
+#[derive(AsRefStr, Debug, Clone)]
 pub enum Coin {
+    #[strum(serialize = "AAVE")]
     Aave,
-    AcmfT,
-    AcorDO01,
-    AsrfT,
-    AtmfT,
+    #[strum(serialize = "ACMFT")]
+    Acmft,
+    #[strum(serialize = "ACORDO01")]
+    Acordo01,
+    #[strum(serialize = "ASRFT")]
+    Asrft,
+    #[strum(serialize = "ATMFT")]
+    Atmft,
+    #[strum(serialize = "AXS")]
     Axs,
+    #[strum(serialize = "BAL")]
     Bal,
-    BarfT,
+    #[strum(serialize = "BARFT")]
+    Barft,
+    #[strum(serialize = "BAT")]
     Bat,
+    #[strum(serialize = "BCH")]
     Bch,
+    #[strum(serialize = "BTC")]
     Btc,
-    CaifT,
+    #[strum(serialize = "CAIFT")]
+    Caift,
+    #[strum(serialize = "CHZ")]
     Chz,
+    #[strum(serialize = "COMP")]
     Comp,
+    #[strum(serialize = "CRV")]
     Crv,
+    #[strum(serialize = "DAI")]
     Dai,
+    #[strum(serialize = "DAL")]
     Dal,
+    #[strum(serialize = "ENJ")]
     Enj,
+    #[strum(serialize = "ETH")]
     Eth,
-    GalfT,
+    #[strum(serialize = "GALFT")]
+    Galft,
+    #[strum(serialize = "GRT")]
     Grt,
+    #[strum(serialize = "IMOB01")]
     Imob01,
-    JuvfT,
+    #[strum(serialize = "JUVFT")]
+    Juvft,
+    #[strum(serialize = "KNC")]
     Knc,
+    #[strum(serialize = "LINK")]
     Link,
+    #[strum(serialize = "LTC")]
     Ltc,
+    #[strum(serialize = "MANA")]
     Mana,
-    MbcoNS01,
-    MbcoNS02,
+    #[strum(serialize = "MBCONS01")]
+    Mbcons01,
+    #[strum(serialize = "MBCONS02")]
+    Mbcons02,
+    #[strum(serialize = "MBFP01")]
     Mbfp01,
+    #[strum(serialize = "MBFP02")]
     Mbfp02,
+    #[strum(serialize = "MBFP03")]
     Mbfp03,
+    #[strum(serialize = "MBFP04")]
     Mbfp04,
-    MbprK01,
-    MbprK02,
-    MbprK03,
-    MbprK04,
-    MbvaSCO01,
+    #[strum(serialize = "MBPRK01")]
+    Mbprk01,
+    #[strum(serialize = "MBPRK02")]
+    Mbprk02,
+    #[strum(serialize = "MBPRK03")]
+    Mbprk03,
+    #[strum(serialize = "MBPRK04")]
+    Mbprk04,
+    #[strum(serialize = "MBVASCO01")]
+    Mbvasco01,
+    #[strum(serialize = "MCO2")]
     Mco2,
+    #[strum(serialize = "MKR")]
     Mkr,
+    #[strum(serialize = "OGFT")]
     Ogft,
+    #[strum(serialize = "PAXG")]
     Paxg,
-    PsgfT,
+    #[strum(serialize = "PSGFT")]
+    Psgft,
+    #[strum(serialize = "REI")]
     Rei,
+    #[strum(serialize = "REN")]
     Ren,
+    #[strum(serialize = "SNX")]
     Snx,
+    #[strum(serialize = "UMA")]
     Uma,
+    #[strum(serialize = "UNI")]
     Uni,
+    #[strum(serialize = "USDC")]
     Usdc,
+    #[strum(serialize = "WBX")]
     Wbx,
+    #[strum(serialize = "XRP")]
     Xrp,
+    #[strum(serialize = "YFI")]
     Yfi,
+    #[strum(serialize = "ZRX")]
     Zrx,
 }
 
