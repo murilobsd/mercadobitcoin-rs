@@ -13,7 +13,7 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
-use chrono::{Datelike, NaiveDate, DateTime, Utc};
+use chrono::{DateTime, Datelike, NaiveDate, Utc};
 use log::debug;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -28,59 +28,59 @@ static APP_USER_AGENT: &str =
 #[derive(AsRefStr, Debug, Clone)]
 /// Acrônimo da moeda digital.
 pub enum Coin {
-    AAVE,
-    ACMFT,
-    ACORDO01,
-    ASRFT,
-    ATMFT,
-    AXS,
-    BAL,
-    BARFT,
-    BAT,
-    BCH,
-    BTC,
-    CAIFT,
-    CHZ,
-    COMP,
-    CRV,
-    DAI,
-    DAL,
-    ENJ,
-    ETH,
-    GALFT,
-    GRT,
-    IMOB01,
-    JUVFT,
-    KNC,
-    LINK,
-    LTC,
-    MANA,
-    MBCONS01,
-    MBCONS02,
-    MBFP01,
-    MBFP02,
-    MBFP03,
-    MBFP04,
-    MBPRK01,
-    MBPRK02,
-    MBPRK03,
-    MBPRK04,
-    MBVASCO01,
-    MCO2,
-    MKR,
-    OGFT,
-    PAXG,
-    PSGFT,
-    REI,
-    REN,
-    SNX,
-    UMA,
-    UNI,
-    USDC,
-    WBX,
-    XRP,
-    YFI,
-    ZRX,
+    Aave,
+    AcmfT,
+    AcorDO01,
+    AsrfT,
+    AtmfT,
+    Axs,
+    Bal,
+    BarfT,
+    Bat,
+    Bch,
+    Btc,
+    CaifT,
+    Chz,
+    Comp,
+    Crv,
+    Dai,
+    Dal,
+    Enj,
+    Eth,
+    GalfT,
+    Grt,
+    Imob01,
+    JuvfT,
+    Knc,
+    Link,
+    Ltc,
+    Mana,
+    MbcoNS01,
+    MbcoNS02,
+    Mbfp01,
+    Mbfp02,
+    Mbfp03,
+    Mbfp04,
+    MbprK01,
+    MbprK02,
+    MbprK03,
+    MbprK04,
+    MbvaSCO01,
+    Mco2,
+    Mkr,
+    Ogft,
+    Paxg,
+    PsgfT,
+    Rei,
+    Ren,
+    Snx,
+    Uma,
+    Uni,
+    Usdc,
+    Wbx,
+    Xrp,
+    Yfi,
+    Zrx,
 }
 
 #[derive(Debug, Clone)]
@@ -106,6 +106,7 @@ pub struct Ticker {
     pub buy: Decimal,
     /// Menor preço de oferta de venda das últimas 24 horas.
     pub sell: Decimal,
+    // TODO: converter para chore
     /// Data e hora da informação em Era Unix.
     pub date: u64,
 }
@@ -180,6 +181,12 @@ pub struct MercadoBitcoin {
     client: reqwest::Client,
 }
 
+impl Default for MercadoBitcoin {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MercadoBitcoin {
     pub fn new() -> Self {
         let client = reqwest::Client::builder()
@@ -239,27 +246,34 @@ impl MercadoBitcoin {
         Ok(resp)
     }
 
+    // TODO: checar se o período é menor do que o dia da consulta
     /// Retorna resumo diário de negociações realizadas.
     pub async fn day_summary(
         &self,
         coin: Coin,
-        date: &NaiveDate
+        date: &NaiveDate,
     ) -> Result<DaySummary, reqwest::Error> {
         let coin_str = coin.as_ref();
         let method_str = "day-summary";
-        let url = format!("{}{}/{}/{}/{}/{}/", MB_URL, coin_str, method_str, date.year(), date.month(), date.day());
+        let url = format!(
+            "{}{}/{}/{}/{}/{}/",
+            MB_URL,
+            coin_str,
+            method_str,
+            date.year(),
+            date.month(),
+            date.day()
+        );
 
         let resp = self.call::<DaySummary>(&url).await?;
 
         Ok(resp)
     }
 
-
-    async fn call<T>(
-        &self,
-        url: &str,
-    ) -> Result<T, reqwest::Error> 
-    where T: Serialize + for<'de> Deserialize<'de>
+    // TODO: melhorar erros
+    async fn call<T>(&self, url: &str) -> Result<T, reqwest::Error>
+    where
+        T: Serialize + for<'de> Deserialize<'de>,
     {
         debug!("Request: {}", url);
 
@@ -277,7 +291,7 @@ mod tests {
 
     #[test]
     fn btc_coin() {
-        let coin = Coin::BTC;
+        let coin = Coin::Btc;
         assert_eq!("BTC", coin.as_ref());
     }
 }

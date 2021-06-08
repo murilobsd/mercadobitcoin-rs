@@ -18,7 +18,7 @@ use mercadobitcoin_rs::{Coin, MercadoBitcoin, OrderBook};
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
     env_logger::init();
-    let coin = Coin::BTC;
+    let coin = Coin::Btc;
     let mb = MercadoBitcoin::new();
     let order_book = mb.order_book(coin).await?;
     println!("{:#?}", order_book);

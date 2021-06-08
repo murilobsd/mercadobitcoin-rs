@@ -13,13 +13,13 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
-use mercadobitcoin_rs::{Coin, MercadoBitcoin, DaySummary};
+use mercadobitcoin_rs::{Coin, MercadoBitcoin};
 use chrono::NaiveDate;
 
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
     env_logger::init();
-    let coin = Coin::BTC;
+    let coin = Coin::Btc;
     let mb = MercadoBitcoin::new();
     let date = NaiveDate::from_ymd(2021, 6, 7);
     let day_summary = mb.day_summary(coin, &date).await?;

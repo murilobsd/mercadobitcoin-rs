@@ -18,7 +18,7 @@ use mercadobitcoin_rs::{Coin, MercadoBitcoin, Trade};
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
     env_logger::init();
-    let coin = Coin::BTC;
+    let coin = Coin::Btc;
     let mb = MercadoBitcoin::new();
     let trades = mb.trades(coin).await?;
     println!("{:#?}", trades);
