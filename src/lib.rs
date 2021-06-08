@@ -22,12 +22,8 @@ use strum_macros::AsRefStr;
 
 const MB_URL: &str = "https://www.mercadobitcoin.net/api/";
 
-static APP_USER_AGENT: &str = concat!(
-        env!("CARGO_PKG_NAME"),
-            "/",
-                env!("CARGO_PKG_VERSION"),
-);
-
+static APP_USER_AGENT: &str =
+    concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
 #[derive(AsRefStr, Debug, Clone)]
 /// Acrônimo da moeda digital.
@@ -157,26 +153,26 @@ pub struct Trade {
     pub tp: TradeType,
 }
 
-#[derive(Debug, Clone)]
-pub struct DaySummaryResp {
+#[derive(Debug, Clone, Deserialize)]
+pub struct DaySummary {
     /// Data do resumo diário
-    pub date: u64,
+    pub date: String,
     /// Preço unitário de abertura de negociação no dia.
-    pub opening: f32,
+    pub opening: Decimal,
     /// Preço unitário de fechamento de negociação no dia.
-    pub closing: f32,
+    pub closing: Decimal,
     /// Menor preço unitário de negociação no dia.
-    pub lowest: f32,
+    pub lowest: Decimal,
     /// Maior preço unitário de negociação no dia.
-    pub highest: f32,
+    pub highest: Decimal,
     /// Volume de Reais (BRL) negociados no dia.
-    pub volume: f32,
+    pub volume: Decimal,
     /// Quantidade da moeda digital negociada no dia.
-    pub quantity: f32,
+    pub quantity: Decimal,
     /// Número de negociações realizadas no dia.
     pub amount: usize,
     /// Preço unitário médio das negociações no dia.
-    pub avg_price: f32,
+    pub avg_price: Decimal,
 }
 
 #[derive(Debug, Clone)]
@@ -184,15 +180,13 @@ pub struct MercadoBitcoin {
     client: reqwest::Client,
 }
 
-
 impl MercadoBitcoin {
     pub fn new() -> Self {
         let client = reqwest::Client::builder()
-                .user_agent(APP_USER_AGENT)
-                    .build().unwrap();
-        Self {
-            client
-        }
+            .user_agent(APP_USER_AGENT)
+            .build()
+            .unwrap();
+        Self { client }
     }
 
     /// Retorna informações com o resumo das últimas 24 horas de negociações.
@@ -234,7 +228,10 @@ impl MercadoBitcoin {
     }
 
     /// Histórico de negociações realizadas.
-    pub async fn trades(&self, coin: Coin) -> Result<Vec<Trade>, reqwest::Error> {
+    pub async fn trades(
+        &self,
+        coin: Coin,
+    ) -> Result<Vec<Trade>, reqwest::Error> {
         let coin_str = coin.as_ref();
         let method_str = "trades";
         let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
@@ -245,7 +242,20 @@ impl MercadoBitcoin {
         Ok(trade_resp)
     }
 
-    pub fn day_summary(&self, coin: Coin) {}
+    /// Retorna resumo diário de negociações realizadas.
+    pub async fn day_summary(
+        &self,
+        coin: Coin,
+    ) -> Result<Vec<DaySummary>, reqwest::Error> {
+        let coin_str = coin.as_ref();
+        let method_str = "trades";
+        let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
+
+        let resp = self.call(&url).await?;
+        let day_summary_resp: Vec<DaySummary> = resp.json().await?;
+
+        Ok(day_summary_resp)
+    }
 
     async fn call(
         &self,
@@ -254,7 +264,7 @@ impl MercadoBitcoin {
         debug!("Request: {}", url);
 
         let resp = self.client.get(url).send().await?;
-        
+
         Ok(resp)
     }
 }
