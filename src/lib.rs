@@ -13,7 +13,7 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
-use chrono::{DateTime, Datelike, NaiveDate, Utc, serde::ts_milliseconds};
+use chrono::{serde::ts_milliseconds, DateTime, Datelike, NaiveDate, Utc};
 use log::debug;
 use rust_decimal::prelude::*;
 use rust_decimal::Decimal;
