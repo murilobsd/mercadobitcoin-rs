@@ -152,14 +152,23 @@ pub struct Trade {
 
 #[derive(Debug, Clone)]
 pub struct DaySummaryResp {
-    pub date: Date<Utc>,
+    /// Data do resumo diário
+    pub date: u64,
+    /// Preço unitário de abertura de negociação no dia.
     pub opening: f32,
+    /// Preço unitário de fechamento de negociação no dia.
     pub closing: f32,
+    /// Menor preço unitário de negociação no dia.
     pub lowest: f32,
+    /// Maior preço unitário de negociação no dia.
     pub highest: f32,
+    /// Volume de Reais (BRL) negociados no dia.
     pub volume: f32,
+    /// Quantidade da moeda digital negociada no dia.
     pub quantity: f32,
+    /// Número de negociações realizadas no dia.
     pub amount: usize,
+    /// Preço unitário médio das negociações no dia.
     pub avg_price: f32,
 }
 
