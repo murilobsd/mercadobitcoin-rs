@@ -22,6 +22,13 @@ use strum_macros::AsRefStr;
 
 const MB_URL: &str = "https://www.mercadobitcoin.net/api/";
 
+static APP_USER_AGENT: &str = concat!(
+        env!("CARGO_PKG_NAME"),
+            "/",
+                env!("CARGO_PKG_VERSION"),
+);
+
+
 #[derive(AsRefStr, Debug, Clone)]
 /// Acrônimo da moeda digital.
 pub enum Coin {
@@ -173,11 +180,19 @@ pub struct DaySummaryResp {
 }
 
 #[derive(Debug, Clone)]
-pub struct MercadoBitcoin {}
+pub struct MercadoBitcoin {
+    client: reqwest::Client,
+}
+
 
 impl MercadoBitcoin {
     pub fn new() -> Self {
-        Self {}
+        let client = reqwest::Client::builder()
+                .user_agent(APP_USER_AGENT)
+                    .build().unwrap();
+        Self {
+            client
+        }
     }
 
     /// Retorna informações com o resumo das últimas 24 horas de negociações.
@@ -238,7 +253,8 @@ impl MercadoBitcoin {
     ) -> Result<reqwest::Response, reqwest::Error> {
         debug!("Request: {}", url);
 
-        let resp = reqwest::Client::new().get(url).send().await?;
+        let resp = self.client.get(url).send().await?;
+        
         Ok(resp)
     }
 }
