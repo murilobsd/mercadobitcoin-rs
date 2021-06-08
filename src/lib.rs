@@ -127,18 +127,26 @@ pub struct OrderBook {
     pub bids: Vec<Vec<Decimal>>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(AsRefStr, Debug, Clone, Deserialize)]
 pub enum TradeType {
+    #[serde(rename(deserialize = "sell"))]
     Sell,
+    #[serde(rename(deserialize = "buy"))]
     Buy,
 }
 
-#[derive(Debug, Clone)]
-pub struct TradesResp {
-    pub date: DateTime<Utc>,
-    pub price: f32,
-    pub amount: f32,
+#[derive(Debug, Clone, Deserialize)]
+pub struct Trade {
+    /// Data e hora da negociação....
+    pub date: u64,
+    /// Preço unitário da negociação.
+    pub price: Decimal,
+    /// Quantidade da negociação.
+    pub amount: Decimal,
+    /// Quantidade da negociação.
     pub tid: usize,
+    /// [Indica a ponta executora da negociação.](https://www.mercadobitcoin.com.br/info/execucao-ordem)
+    #[serde(rename(deserialize = "type"))]
     pub tp: TradeType,
 }
 
@@ -202,7 +210,16 @@ impl MercadoBitcoin {
     }
 
     /// Histórico de negociações realizadas.
-    pub fn trades(&self, coin: Coin) {}
+    pub async fn trades(&self, coin: Coin) -> Result<Vec<Trade>, reqwest::Error> {
+        let coin_str = coin.as_ref();
+        let method_str = "trades";
+        let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
+
+        let resp = self.call(&url).await?;
+        let trade_resp: Vec<Trade> = resp.json().await?;
+
+        Ok(trade_resp)
+    }
 
     pub fn day_summary(&self, coin: Coin) {}
 
