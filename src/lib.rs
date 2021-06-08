@@ -13,8 +13,9 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
-use chrono::{serde::ts_milliseconds, DateTime, Datelike, NaiveDate, Utc};
+use chrono::{DateTime, Datelike, NaiveDate, Utc, serde::ts_milliseconds};
 use log::debug;
+use rust_decimal::prelude::*;
 use rust_decimal::Decimal;
 use serde::{de, Deserialize, Deserializer, Serialize};
 use std::convert::AsRef;
@@ -148,20 +149,34 @@ pub struct TradesParameter {
 /// Ticker
 pub struct Ticker {
     /// Maior preço unitário de negociação das últimas 24 horas.
+    #[serde(deserialize_with = "decimal_from_str")]
     pub high: Decimal,
     /// Menor preço unitário de negociação das últimas 24 horas.
+    #[serde(deserialize_with = "decimal_from_str")]
     pub low: Decimal,
     /// Quantidade negociada nas últimas 24 horas.
+    #[serde(deserialize_with = "decimal_from_str")]
     pub vol: Decimal,
     /// Preço unitário da última negociação.
+    #[serde(deserialize_with = "decimal_from_str")]
     pub last: Decimal,
     /// Maior preço de oferta de compra das últimas 24 horas.
+    #[serde(deserialize_with = "decimal_from_str")]
     pub buy: Decimal,
     /// Menor preço de oferta de venda das últimas 24 horas.
+    #[serde(deserialize_with = "decimal_from_str")]
     pub sell: Decimal,
     /// Data e hora da informação em Era Unix.
     #[serde(with = "ts_milliseconds")]
     pub date: DateTime<Utc>,
+}
+
+fn decimal_from_str<'de, D>(deserializer: D) -> Result<Decimal, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: String = Deserialize::deserialize(deserializer)?;
+    Decimal::from_str(&s).map_err(de::Error::custom)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
