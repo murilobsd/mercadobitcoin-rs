@@ -13,14 +13,17 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
-use mercadobitcoin_rs::{Coin, MercadoBitcoin, OrderBook};
+use mercadobitcoin_rs::{Coin, MercadoBitcoin};
 
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
     env_logger::init();
+
     let coin = Coin::Btc;
     let mb = MercadoBitcoin::new();
     let order_book = mb.order_book(coin).await?;
+
     println!("{:#?}", order_book);
+
     Ok(())
 }

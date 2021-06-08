@@ -13,10 +13,10 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
-use chrono::{DateTime, Datelike, NaiveDate, Utc};
+use chrono::{serde::ts_milliseconds, DateTime, Datelike, NaiveDate, Utc};
 use log::debug;
 use rust_decimal::Decimal;
-use serde::{Deserialize, Serialize};
+use serde::{de, Deserialize, Deserializer, Serialize};
 use std::convert::AsRef;
 use strum_macros::AsRefStr;
 
@@ -159,9 +159,9 @@ pub struct Ticker {
     pub buy: Decimal,
     /// Menor preço de oferta de venda das últimas 24 horas.
     pub sell: Decimal,
-    // TODO: converter para chore
     /// Data e hora da informação em Era Unix.
-    pub date: u64,
+    #[serde(with = "ts_milliseconds")]
+    pub date: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -195,7 +195,8 @@ pub enum TradeType {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Trade {
     /// Data e hora da negociação....
-    pub date: u64,
+    #[serde(with = "ts_milliseconds")]
+    pub date: DateTime<Utc>,
     /// Preço unitário da negociação.
     pub price: Decimal,
     /// Quantidade da negociação.
@@ -210,7 +211,8 @@ pub struct Trade {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct DaySummary {
     /// Data do resumo diário
-    pub date: String,
+    #[serde(deserialize_with = "naive_date_from_str")]
+    pub date: NaiveDate,
     /// Preço unitário de abertura de negociação no dia.
     pub opening: Decimal,
     /// Preço unitário de fechamento de negociação no dia.
@@ -227,6 +229,14 @@ pub struct DaySummary {
     pub amount: usize,
     /// Preço unitário médio das negociações no dia.
     pub avg_price: Decimal,
+}
+
+fn naive_date_from_str<'de, D>(deserializer: D) -> Result<NaiveDate, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: String = Deserialize::deserialize(deserializer)?;
+    NaiveDate::parse_from_str(&s, "%Y-%m-%d").map_err(de::Error::custom)
 }
 
 #[derive(Debug, Clone)]
