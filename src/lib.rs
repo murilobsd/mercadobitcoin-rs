@@ -13,7 +13,7 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
-use chrono::{Date, DateTime, Utc};
+use chrono::{Datelike, NaiveDate, DateTime, Utc};
 use log::debug;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -246,10 +246,11 @@ impl MercadoBitcoin {
     pub async fn day_summary(
         &self,
         coin: Coin,
+        date: &NaiveDate
     ) -> Result<DaySummary, reqwest::Error> {
         let coin_str = coin.as_ref();
-        let method_str = "trades";
-        let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
+        let method_str = "day-summary";
+        let url = format!("{}{}/{}/{}/{}/{}/", MB_URL, coin_str, method_str, date.year(), date.month(), date.day());
 
         let resp = self.call(&url).await?;
         let day_summary_resp: DaySummary = resp.json().await?;
