@@ -110,7 +110,7 @@ pub struct Ticker {
     pub date: u64,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// Resposta do método Ticker
 struct TickerResp {
     ticker: Ticker,
@@ -195,10 +195,9 @@ impl MercadoBitcoin {
         let method_str = "ticker";
         let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
 
-        let resp = self.call(&url).await?;
-        let ticker_resp: TickerResp = resp.json().await?;
+        let resp = self.call::<TickerResp>(&url).await?;
 
-        Ok(ticker_resp.ticker)
+        Ok(resp.ticker)
     }
 
     /// Livro de negociações, ordens abertas de compra e venda.
@@ -221,10 +220,9 @@ impl MercadoBitcoin {
         let method_str = "orderbook";
         let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
 
-        let resp = self.call(&url).await?;
-        let ob_resp: OrderBook = resp.json().await?;
+        let resp = self.call::<OrderBook>(&url).await?;
 
-        Ok(ob_resp)
+        Ok(resp)
     }
 
     /// Histórico de negociações realizadas.
@@ -236,10 +234,9 @@ impl MercadoBitcoin {
         let method_str = "trades";
         let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
 
-        let resp = self.call(&url).await?;
-        let trade_resp: Vec<Trade> = resp.json().await?;
+        let resp = self.call::<Vec<Trade>>(&url).await?;
 
-        Ok(trade_resp)
+        Ok(resp)
     }
 
     /// Retorna resumo diário de negociações realizadas.
@@ -252,21 +249,25 @@ impl MercadoBitcoin {
         let method_str = "day-summary";
         let url = format!("{}{}/{}/{}/{}/{}/", MB_URL, coin_str, method_str, date.year(), date.month(), date.day());
 
-        let resp = self.call(&url).await?;
-        let day_summary_resp: DaySummary = resp.json().await?;
+        let resp = self.call::<DaySummary>(&url).await?;
 
-        Ok(day_summary_resp)
+        Ok(resp)
     }
 
-    async fn call(
+
+    async fn call<T>(
         &self,
         url: &str,
-    ) -> Result<reqwest::Response, reqwest::Error> {
+    ) -> Result<T, reqwest::Error> 
+    where T: Serialize + for<'de> Deserialize<'de>
+    {
         debug!("Request: {}", url);
 
         let resp = self.client.get(url).send().await?;
 
-        Ok(resp)
+        let obj: T = resp.json().await?;
+
+        Ok(obj)
     }
 }
 
