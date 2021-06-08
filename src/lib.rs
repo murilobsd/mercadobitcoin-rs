@@ -91,7 +91,7 @@ pub struct TradesParameter {
     pub to: Option<u64>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 /// Ticker
 pub struct Ticker {
     /// Maior preço unitário de negociação das últimas 24 horas.
@@ -116,7 +116,7 @@ struct TickerResp {
     ticker: Ticker,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct OrderBook {
     /// Lista de ofertas de venda, ordenadas do menor para o maior preço.
     ///
@@ -130,15 +130,15 @@ pub struct OrderBook {
     pub bids: Vec<Vec<Decimal>>,
 }
 
-#[derive(AsRefStr, Debug, Clone, Deserialize)]
+#[derive(AsRefStr, Debug, Clone, Serialize, Deserialize)]
 pub enum TradeType {
-    #[serde(rename(deserialize = "sell"))]
+    #[serde(rename = "sell")]
     Sell,
-    #[serde(rename(deserialize = "buy"))]
+    #[serde(rename = "buy")]
     Buy,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Trade {
     /// Data e hora da negociação....
     pub date: u64,
@@ -149,11 +149,11 @@ pub struct Trade {
     /// Quantidade da negociação.
     pub tid: usize,
     /// [Indica a ponta executora da negociação.](https://www.mercadobitcoin.com.br/info/execucao-ordem)
-    #[serde(rename(deserialize = "type"))]
+    #[serde(rename = "type")]
     pub tp: TradeType,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct DaySummary {
     /// Data do resumo diário
     pub date: String,
@@ -246,13 +246,13 @@ impl MercadoBitcoin {
     pub async fn day_summary(
         &self,
         coin: Coin,
-    ) -> Result<Vec<DaySummary>, reqwest::Error> {
+    ) -> Result<DaySummary, reqwest::Error> {
         let coin_str = coin.as_ref();
         let method_str = "trades";
         let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
 
         let resp = self.call(&url).await?;
-        let day_summary_resp: Vec<DaySummary> = resp.json().await?;
+        let day_summary_resp: DaySummary = resp.json().await?;
 
         Ok(day_summary_resp)
     }
