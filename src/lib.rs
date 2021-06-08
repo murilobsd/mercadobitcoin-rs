@@ -13,7 +13,7 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
-use chrono::{serde::ts_milliseconds, DateTime, Datelike, NaiveDate, Utc};
+use chrono::{Local, serde::ts_milliseconds, DateTime, Datelike, NaiveDate, Utc};
 use log::debug;
 use rust_decimal::prelude::*;
 use rust_decimal::Decimal;
@@ -333,6 +333,7 @@ impl MercadoBitcoin {
     ) -> Result<DaySummary, reqwest::Error> {
         let coin_str = coin.as_ref();
         let method_str = "day-summary";
+        let _now: DateTime<Local> = Local::now();
         let url = format!(
             "{}{}/{}/{}/{}/{}/",
             MB_URL,
@@ -342,6 +343,7 @@ impl MercadoBitcoin {
             date.month(),
             date.day()
         );
+
 
         let resp = self.call::<DaySummary>(&url).await?;
 
