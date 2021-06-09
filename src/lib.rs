@@ -18,7 +18,7 @@ use log::debug;
 use rust_decimal::prelude::*;
 use rust_decimal::Decimal;
 use serde::{de, Deserialize, Deserializer, Serialize};
-use std::convert::AsRef;
+use std::{fmt, convert::AsRef};
 use strum_macros::AsRefStr;
 
 const MB_URL: &str = "https://www.mercadobitcoin.net/api/";
@@ -137,12 +137,11 @@ pub enum Coin {
     Zrx,
 }
 
-#[derive(Debug, Clone)]
-pub struct TradesParameter {
-    pub tid: Option<usize>,
-    pub since: Option<usize>,
-    pub from: Option<u64>,
-    pub to: Option<u64>,
+/// Parametros que podem ser usados em alguns endpoints.
+pub trait Parameter: fmt::Display {
+    fn to_query(&self, base_url: &str) -> String {
+        format!("{}{}", base_url, self)
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -150,22 +149,28 @@ pub struct TradesParameter {
 pub struct Ticker {
     /// Maior preço unitário de negociação das últimas 24 horas.
     #[serde(deserialize_with = "decimal_from_str")]
+
     pub high: Decimal,
     /// Menor preço unitário de negociação das últimas 24 horas.
     #[serde(deserialize_with = "decimal_from_str")]
+
     pub low: Decimal,
     /// Quantidade negociada nas últimas 24 horas.
     #[serde(deserialize_with = "decimal_from_str")]
+
     pub vol: Decimal,
     /// Preço unitário da última negociação.
     #[serde(deserialize_with = "decimal_from_str")]
+
     pub last: Decimal,
     /// Maior preço de oferta de compra das últimas 24 horas.
     #[serde(deserialize_with = "decimal_from_str")]
     pub buy: Decimal,
+
     /// Menor preço de oferta de venda das últimas 24 horas.
     #[serde(deserialize_with = "decimal_from_str")]
     pub sell: Decimal,
+
     /// Data e hora da informação em Era Unix.
     #[serde(with = "ts_milliseconds")]
     pub date: DateTime<Utc>,
@@ -199,29 +204,90 @@ pub struct OrderBook {
     pub bids: Vec<Vec<Decimal>>,
 }
 
+/// Tipo de negociação
 #[derive(AsRefStr, Debug, Clone, Serialize, Deserialize)]
 pub enum TradeType {
+    /// Compra
     #[serde(rename = "sell")]
     Sell,
+    /// Venda
     #[serde(rename = "buy")]
     Buy,
 }
 
+// Estrutura que representa a negociação
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Trade {
     /// Data e hora da negociação....
     #[serde(with = "ts_milliseconds")]
     pub date: DateTime<Utc>,
+
     /// Preço unitário da negociação.
     pub price: Decimal,
+
     /// Quantidade da negociação.
     pub amount: Decimal,
+
     /// Quantidade da negociação.
     pub tid: usize,
+
     /// [Indica a ponta executora da negociação.](https://www.mercadobitcoin.com.br/info/execucao-ordem)
     #[serde(rename = "type")]
     pub tp: TradeType,
 }
+
+#[derive(Debug, Clone)]
+pub struct TradesParameterTid(pub usize);
+
+impl fmt::Display for TradesParameterTid {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "?tid={}", self.0)
+    }
+}
+
+impl Parameter for TradesParameterTid { }
+
+impl TradesParameterTid {
+    pub fn new(tid: usize) -> Self {
+        Self(tid)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TradesParameterSince(pub usize);
+
+impl fmt::Display for TradesParameterSince {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "?since={}", self.0)
+    }
+}
+
+impl Parameter for TradesParameterSince { }
+
+impl TradesParameterSince {
+    pub fn new(since: usize) -> Self {
+        Self(since)
+    }
+}
+
+
+#[derive(Debug, Clone)]
+pub struct TradesParameterPeriod(pub u64, pub u64);
+
+impl fmt::Display for TradesParameterPeriod {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}/{}/", self.0, self.1)
+    }
+}
+
+impl Parameter for TradesParameterPeriod { }
+
+impl TradesParameterPeriod {
+    pub fn new(from: u64, to: u64) -> Self {
+        Self(from, to)
+    }
+}
+
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct DaySummary {
@@ -314,12 +380,18 @@ impl MercadoBitcoin {
     pub async fn trades(
         &self,
         coin: Coin,
+        parameter: Option<Box<dyn Parameter>>
     ) -> Result<Vec<Trade>, reqwest::Error> {
         let coin_str = coin.as_ref();
         let method_str = "trades";
-        let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
-
-        let resp = self.call::<Vec<Trade>>(&url).await?;
+        let base_url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
+        let resp = match parameter {
+            Some(parameter) => {
+                let url = parameter.to_query(&base_url);
+                self.call::<Vec<Trade>>(&url).await?
+            },
+            None => self.call::<Vec<Trade>>(&base_url).await?
+        };
 
         Ok(resp)
     }

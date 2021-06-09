@@ -13,7 +13,7 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
-use mercadobitcoin_rs::{Coin, MercadoBitcoin};
+use mercadobitcoin_rs::{Coin, MercadoBitcoin, Parameter, TradesParameterTid};
 
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
@@ -21,7 +21,10 @@ async fn main() -> Result<(), reqwest::Error> {
 
     let coin = Coin::Btc;
     let mb = MercadoBitcoin::new();
-    let trades = mb.trades(coin).await?;
+    // let parameter = TradesParameterTid::new(5700);
+    // let param_box = Box::new(parameter);
+    // let trades = mb.trades(coin, Some(param_box)).await?;
+    let trades = mb.trades(coin, None).await?;
 
     println!("{:#?}", trades);
 
