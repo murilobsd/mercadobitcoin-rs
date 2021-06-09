@@ -22,7 +22,7 @@ async fn main() -> Result<()> {
     env_logger::init();
     let coin = Coin::Btc;
     let mb = MercadoBitcoin::new();
-    let date = NaiveDate::from_ymd(2022, 6, 7);
+    let date = NaiveDate::from_ymd(2021, 6, 7);
     let day_summary = mb.day_summary(coin, &date).await?;
     println!("{:#?}", day_summary);
     Ok(())

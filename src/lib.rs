@@ -146,6 +146,8 @@ pub trait Parameter: fmt::Display {
     fn to_query(&self, base_url: &str) -> String {
         format!("{}{}", base_url, self)
     }
+
+    fn is_valid(&self) -> bool;
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -245,7 +247,15 @@ impl fmt::Display for TradesParameterTid {
     }
 }
 
-impl Parameter for TradesParameterTid {}
+impl Parameter for TradesParameterTid {
+    fn is_valid(&self) -> bool {
+        if self.0 > 0 {
+            true
+        } else {
+            false
+        }
+    }
+}
 
 impl TradesParameterTid {
     pub fn new(tid: usize) -> Self {
@@ -262,7 +272,15 @@ impl fmt::Display for TradesParameterSince {
     }
 }
 
-impl Parameter for TradesParameterSince {}
+impl Parameter for TradesParameterSince {
+    fn is_valid(&self) -> bool {
+        if self.0 > 0 {
+            true
+        } else {
+            false
+        }
+    }
+}
 
 impl TradesParameterSince {
     pub fn new(since: usize) -> Self {
@@ -271,7 +289,7 @@ impl TradesParameterSince {
 }
 
 #[derive(Debug, Clone)]
-pub struct TradesParameterPeriod(pub u64, pub u64);
+pub struct TradesParameterPeriod(pub DateTime<Utc>, pub DateTime<Utc>);
 
 impl fmt::Display for TradesParameterPeriod {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -279,16 +297,48 @@ impl fmt::Display for TradesParameterPeriod {
     }
 }
 
-impl Parameter for TradesParameterPeriod {}
+impl Parameter for TradesParameterPeriod {
+    // XXX: improve this
+    fn is_valid(&self) -> bool {
+        let now: DateTime<Local> = Local::now();
+
+        // check both dates
+        if self.1 < self.0 {
+            return false;
+        }
+
+        // check self.0 date
+        if self.0.year() == now.year()
+            && self.0.month() <= now.month()
+            && self.0.day() < now.day()
+        {
+            return true;
+        } else if self.0.year() < now.year() {
+            return true;
+        } else {
+            return false;
+        }
+
+        // check self.1 date
+        if self.1.year() == now.year()
+            && self.1.month() <= now.month()
+            && self.1.day() < now.day()
+        {
+            return true;
+        } else if self.1.year() < now.year() {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+}
 
 impl TradesParameterPeriod {
-    pub fn new(from: u64, to: u64) -> Self {
+    pub fn new(from: DateTime<Utc>, to: DateTime<Utc>) -> Self {
         Self(from, to)
     }
 
-    fn is_valid(&self) -> bool {
-        true
-    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -328,6 +378,8 @@ pub enum MercadoBitcoinError {
     InvalidPeriod(String),
     #[error("failed request")]
     Request(#[from] reqwest::Error),
+    #[error("parameter is invalid: {0}.")]
+    Parameter(String),
     #[error("unknown error")]
     Unknown,
 }
@@ -402,8 +454,13 @@ impl MercadoBitcoin {
         let base_url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
         let resp = match parameter {
             Some(parameter) => {
-                let url = parameter.to_query(&base_url);
-                self.call::<Vec<Trade>>(&url).await?
+                if parameter.is_valid() {
+                    let url = parameter.to_query(&base_url);
+                    self.call::<Vec<Trade>>(&url).await?
+                } else {
+                    let msg = String::from("please check date");
+                    return Err(anyhow!(MercadoBitcoinError::Parameter(msg)));
+                }
             }
             None => self.call::<Vec<Trade>>(&base_url).await?,
         };

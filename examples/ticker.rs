@@ -14,10 +14,10 @@
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
 use anyhow::Result;
-use mercadobitcoin::{Coin, MercadoBitcoin, MercadoBitcoinError};
+use mercadobitcoin::{Coin, MercadoBitcoin};
 
 #[tokio::main]
-async fn main() -> Result<(), MercadoBitcoinError> {
+async fn main() -> Result<()> {
     env_logger::init();
 
     let coin = Coin::Btc;

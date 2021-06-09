@@ -13,10 +13,11 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
-use mercadobitcoin::{Coin, MercadoBitcoin, MercadoBitcoinError};
+use mercadobitcoin::{Coin, MercadoBitcoin};
+use anyhow::Result;
 
 #[tokio::main]
-async fn main() -> Result<(), MercadoBitcoinError> {
+async fn main() -> Result<()> {
     env_logger::init();
 
     let coin = Coin::Btc;

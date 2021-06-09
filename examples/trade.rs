@@ -16,17 +16,18 @@
 use mercadobitcoin::{
     Coin, MercadoBitcoin, MercadoBitcoinError, Parameter, TradesParameterTid,
 };
+use anyhow::Result;
 
 #[tokio::main]
-async fn main() -> Result<(), MercadoBitcoinError> {
+async fn main() -> Result<()> {
     env_logger::init();
 
     let coin = Coin::Btc;
     let mb = MercadoBitcoin::new();
-    // let parameter = TradesParameterTid::new(5700);
-    // let param_box = Box::new(parameter);
-    // let trades = mb.trades(coin, Some(param_box)).await?;
-    let trades = mb.trades(coin, None).await?;
+    let parameter = TradesParameterTid::new(5700);
+    let param_box = Box::new(parameter);
+    let trades = mb.trades(coin, Some(param_box)).await?;
+    // let trades = mb.trades(coin, None).await?;
 
     println!("{:#?}", trades);
 
