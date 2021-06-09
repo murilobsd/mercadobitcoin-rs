@@ -13,7 +13,7 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use chrono::{
     serde::ts_milliseconds, DateTime, Datelike, Local, NaiveDate, Utc,
 };
