@@ -13,7 +13,7 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use chrono::{
     serde::ts_milliseconds, DateTime, Datelike, Local, NaiveDate, Utc,
 };
@@ -285,6 +285,10 @@ impl TradesParameterPeriod {
     pub fn new(from: u64, to: u64) -> Self {
         Self(from, to)
     }
+
+    fn is_valid(&self) -> bool {
+        true
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -352,7 +356,7 @@ impl MercadoBitcoin {
     pub async fn ticker(
         &self,
         coin: Coin,
-    ) -> Result<Ticker, MercadoBitcoinError> {
+    ) -> Result<Ticker> {
         let coin_str = coin.as_ref();
         let method_str = "ticker";
         let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
@@ -377,7 +381,7 @@ impl MercadoBitcoin {
     pub async fn order_book(
         &self,
         coin: Coin,
-    ) -> Result<OrderBook, MercadoBitcoinError> {
+    ) -> Result<OrderBook> {
         let coin_str = coin.as_ref();
         let method_str = "orderbook";
         let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
@@ -392,7 +396,7 @@ impl MercadoBitcoin {
         &self,
         coin: Coin,
         parameter: Option<Box<dyn Parameter>>,
-    ) -> Result<Vec<Trade>, MercadoBitcoinError> {
+    ) -> Result<Vec<Trade>> {
         let coin_str = coin.as_ref();
         let method_str = "trades";
         let base_url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
@@ -412,7 +416,7 @@ impl MercadoBitcoin {
         &self,
         coin: Coin,
         date: &NaiveDate,
-    ) -> Result<DaySummary, MercadoBitcoinError> {
+    ) -> Result<DaySummary> {
         let coin_str = coin.as_ref();
         let method_str = "day-summary";
         let now: DateTime<Local> = Local::now();
@@ -437,11 +441,11 @@ impl MercadoBitcoin {
             Ok(resp)
         } else {
             let date_str = format!("{}", date);
-            Err(MercadoBitcoinError::InvalidPeriod(date_str))
+            Err(anyhow!(MercadoBitcoinError::InvalidPeriod(date_str)))
         }
     }
 
-    async fn call<T>(&self, url: &str) -> Result<T, MercadoBitcoinError>
+    async fn call<T>(&self, url: &str) -> Result<T>
     where
         T: Serialize + for<'de> Deserialize<'de>,
     {
