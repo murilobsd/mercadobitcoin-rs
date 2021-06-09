@@ -437,7 +437,6 @@ impl MercadoBitcoin {
 
     }
 
-    // TODO: melhorar erros
     async fn call<T>(&self, url: &str) -> Result<T, MercadoBitCoinError>
     where
         T: Serialize + for<'de> Deserialize<'de>,
