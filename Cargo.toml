@@ -1,5 +1,5 @@
 [package]
-name = "mercadobitcoin-rs"
+name = "mercadobitcoin"
 version = "0.1.0"
 authors = ["msi <mbsd@m0x.ru>"]
 edition = "2018"

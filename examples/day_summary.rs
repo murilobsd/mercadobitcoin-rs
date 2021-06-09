@@ -14,7 +14,7 @@
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
 use chrono::NaiveDate;
-use mercadobitcoin_rs::{Coin, MercadoBitcoin, MercadoBitcoinError};
+use mercadobitcoin::{Coin, MercadoBitcoin, MercadoBitcoinError};
 
 #[tokio::main]
 async fn main() -> Result<(), MercadoBitcoinError> {
