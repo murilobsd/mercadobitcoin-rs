@@ -13,12 +13,14 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
-use chrono::{Local, serde::ts_milliseconds, DateTime, Datelike, NaiveDate, Utc};
+use chrono::{
+    serde::ts_milliseconds, DateTime, Datelike, Local, NaiveDate, Utc,
+};
 use log::debug;
 use rust_decimal::prelude::*;
 use rust_decimal::Decimal;
 use serde::{de, Deserialize, Deserializer, Serialize};
-use std::{fmt, convert::AsRef};
+use std::{convert::AsRef, fmt};
 use strum_macros::AsRefStr;
 
 const MB_URL: &str = "https://www.mercadobitcoin.net/api/";
@@ -149,19 +151,15 @@ pub trait Parameter: fmt::Display {
 pub struct Ticker {
     /// Maior preço unitário de negociação das últimas 24 horas.
     #[serde(deserialize_with = "decimal_from_str")]
-
     pub high: Decimal,
     /// Menor preço unitário de negociação das últimas 24 horas.
     #[serde(deserialize_with = "decimal_from_str")]
-
     pub low: Decimal,
     /// Quantidade negociada nas últimas 24 horas.
     #[serde(deserialize_with = "decimal_from_str")]
-
     pub vol: Decimal,
     /// Preço unitário da última negociação.
     #[serde(deserialize_with = "decimal_from_str")]
-
     pub last: Decimal,
     /// Maior preço de oferta de compra das últimas 24 horas.
     #[serde(deserialize_with = "decimal_from_str")]
@@ -245,7 +243,7 @@ impl fmt::Display for TradesParameterTid {
     }
 }
 
-impl Parameter for TradesParameterTid { }
+impl Parameter for TradesParameterTid {}
 
 impl TradesParameterTid {
     pub fn new(tid: usize) -> Self {
@@ -262,14 +260,13 @@ impl fmt::Display for TradesParameterSince {
     }
 }
 
-impl Parameter for TradesParameterSince { }
+impl Parameter for TradesParameterSince {}
 
 impl TradesParameterSince {
     pub fn new(since: usize) -> Self {
         Self(since)
     }
 }
-
 
 #[derive(Debug, Clone)]
 pub struct TradesParameterPeriod(pub u64, pub u64);
@@ -280,14 +277,13 @@ impl fmt::Display for TradesParameterPeriod {
     }
 }
 
-impl Parameter for TradesParameterPeriod { }
+impl Parameter for TradesParameterPeriod {}
 
 impl TradesParameterPeriod {
     pub fn new(from: u64, to: u64) -> Self {
         Self(from, to)
     }
 }
-
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct DaySummary {
@@ -380,7 +376,7 @@ impl MercadoBitcoin {
     pub async fn trades(
         &self,
         coin: Coin,
-        parameter: Option<Box<dyn Parameter>>
+        parameter: Option<Box<dyn Parameter>>,
     ) -> Result<Vec<Trade>, reqwest::Error> {
         let coin_str = coin.as_ref();
         let method_str = "trades";
@@ -389,8 +385,8 @@ impl MercadoBitcoin {
             Some(parameter) => {
                 let url = parameter.to_query(&base_url);
                 self.call::<Vec<Trade>>(&url).await?
-            },
-            None => self.call::<Vec<Trade>>(&base_url).await?
+            }
+            None => self.call::<Vec<Trade>>(&base_url).await?,
         };
 
         Ok(resp)
@@ -415,7 +411,6 @@ impl MercadoBitcoin {
             date.month(),
             date.day()
         );
-
 
         let resp = self.call::<DaySummary>(&url).await?;
 
