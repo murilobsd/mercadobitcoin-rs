@@ -22,6 +22,8 @@ use rust_decimal::Decimal;
 use serde::{de, Deserialize, Deserializer, Serialize};
 use std::{convert::AsRef, fmt};
 use strum_macros::AsRefStr;
+use thiserror::Error;
+use anyhow::{Result, anyhow};
 
 const MB_URL: &str = "https://www.mercadobitcoin.net/api/";
 
@@ -316,6 +318,16 @@ where
     NaiveDate::parse_from_str(&s, "%Y-%m-%d").map_err(de::Error::custom)
 }
 
+#[derive(Debug, Error)]
+pub enum MercadoBitCoinError {
+    #[error("we don't predict the future: {0}.")]
+    InvalidPeriod(String),
+    #[error("failed request")]
+    Request(#[from] reqwest::Error),
+    #[error("unknown error")]
+    Unknown,
+}
+
 #[derive(Debug, Clone)]
 pub struct MercadoBitcoin {
     client: reqwest::Client,
@@ -337,7 +349,7 @@ impl MercadoBitcoin {
     }
 
     /// Retorna informações com o resumo das últimas 24 horas de negociações.
-    pub async fn ticker(&self, coin: Coin) -> Result<Ticker, reqwest::Error> {
+    pub async fn ticker(&self, coin: Coin) -> Result<Ticker, MercadoBitCoinError> {
         let coin_str = coin.as_ref();
         let method_str = "ticker";
         let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
@@ -362,7 +374,7 @@ impl MercadoBitcoin {
     pub async fn order_book(
         &self,
         coin: Coin,
-    ) -> Result<OrderBook, reqwest::Error> {
+    ) -> Result<OrderBook, MercadoBitCoinError> {
         let coin_str = coin.as_ref();
         let method_str = "orderbook";
         let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
@@ -377,7 +389,7 @@ impl MercadoBitcoin {
         &self,
         coin: Coin,
         parameter: Option<Box<dyn Parameter>>,
-    ) -> Result<Vec<Trade>, reqwest::Error> {
+    ) -> Result<Vec<Trade>, MercadoBitCoinError> {
         let coin_str = coin.as_ref();
         let method_str = "trades";
         let base_url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
@@ -392,16 +404,15 @@ impl MercadoBitcoin {
         Ok(resp)
     }
 
-    // TODO: checar se o período é menor do que o dia da consulta
     /// Retorna resumo diário de negociações realizadas.
     pub async fn day_summary(
         &self,
         coin: Coin,
         date: &NaiveDate,
-    ) -> Result<DaySummary, reqwest::Error> {
+    ) -> Result<DaySummary, MercadoBitCoinError> {
         let coin_str = coin.as_ref();
         let method_str = "day-summary";
-        let _now: DateTime<Local> = Local::now();
+        let now: DateTime<Local> = Local::now();
         let url = format!(
             "{}{}/{}/{}/{}/{}/",
             MB_URL,
@@ -412,13 +423,22 @@ impl MercadoBitcoin {
             date.day()
         );
 
-        let resp = self.call::<DaySummary>(&url).await?;
+        if date.year() == now.year() && date.month() <= now.month() && date.day() < now.day() {
 
-        Ok(resp)
+            let resp = self.call::<DaySummary>(&url).await?;
+            Ok(resp)
+        } else if date.year() < now.year() {
+            let resp = self.call::<DaySummary>(&url).await?;
+            Ok(resp)
+        } else {
+            let date_str = format!("{}", date);
+            return Err(MercadoBitCoinError::InvalidPeriod(date_str));
+        }
+
     }
 
     // TODO: melhorar erros
-    async fn call<T>(&self, url: &str) -> Result<T, reqwest::Error>
+    async fn call<T>(&self, url: &str) -> Result<T, MercadoBitCoinError>
     where
         T: Serialize + for<'de> Deserialize<'de>,
     {
