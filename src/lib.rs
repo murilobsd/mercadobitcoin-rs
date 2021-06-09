@@ -319,7 +319,7 @@ where
 }
 
 #[derive(Debug, Error)]
-pub enum MercadoBitCoinError {
+pub enum MercadoBitcoinError {
     #[error("we don't predict the future: {0}.")]
     InvalidPeriod(String),
     #[error("failed request")]
@@ -352,7 +352,7 @@ impl MercadoBitcoin {
     pub async fn ticker(
         &self,
         coin: Coin,
-    ) -> Result<Ticker, MercadoBitCoinError> {
+    ) -> Result<Ticker, MercadoBitcoinError> {
         let coin_str = coin.as_ref();
         let method_str = "ticker";
         let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
@@ -377,7 +377,7 @@ impl MercadoBitcoin {
     pub async fn order_book(
         &self,
         coin: Coin,
-    ) -> Result<OrderBook, MercadoBitCoinError> {
+    ) -> Result<OrderBook, MercadoBitcoinError> {
         let coin_str = coin.as_ref();
         let method_str = "orderbook";
         let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
@@ -392,7 +392,7 @@ impl MercadoBitcoin {
         &self,
         coin: Coin,
         parameter: Option<Box<dyn Parameter>>,
-    ) -> Result<Vec<Trade>, MercadoBitCoinError> {
+    ) -> Result<Vec<Trade>, MercadoBitcoinError> {
         let coin_str = coin.as_ref();
         let method_str = "trades";
         let base_url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
@@ -412,7 +412,7 @@ impl MercadoBitcoin {
         &self,
         coin: Coin,
         date: &NaiveDate,
-    ) -> Result<DaySummary, MercadoBitCoinError> {
+    ) -> Result<DaySummary, MercadoBitcoinError> {
         let coin_str = coin.as_ref();
         let method_str = "day-summary";
         let now: DateTime<Local> = Local::now();
@@ -437,11 +437,11 @@ impl MercadoBitcoin {
             Ok(resp)
         } else {
             let date_str = format!("{}", date);
-            return Err(MercadoBitCoinError::InvalidPeriod(date_str));
+            Err(MercadoBitcoinError::InvalidPeriod(date_str))
         }
     }
 
-    async fn call<T>(&self, url: &str) -> Result<T, MercadoBitCoinError>
+    async fn call<T>(&self, url: &str) -> Result<T, MercadoBitcoinError>
     where
         T: Serialize + for<'de> Deserialize<'de>,
     {

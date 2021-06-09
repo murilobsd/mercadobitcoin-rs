@@ -14,10 +14,10 @@
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
 use chrono::NaiveDate;
-use mercadobitcoin_rs::{Coin, MercadoBitcoin};
+use mercadobitcoin_rs::{Coin, MercadoBitcoin, MercadoBitcoinError};
 
 #[tokio::main]
-async fn main() -> Result<(), reqwest::Error> {
+async fn main() -> Result<(), MercadoBitcoinError> {
     env_logger::init();
     let coin = Coin::Btc;
     let mb = MercadoBitcoin::new();
