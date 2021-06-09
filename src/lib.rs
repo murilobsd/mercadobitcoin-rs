@@ -13,6 +13,7 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
+use anyhow::{anyhow, Result};
 use chrono::{
     serde::ts_milliseconds, DateTime, Datelike, Local, NaiveDate, Utc,
 };
@@ -23,7 +24,6 @@ use serde::{de, Deserialize, Deserializer, Serialize};
 use std::{convert::AsRef, fmt};
 use strum_macros::AsRefStr;
 use thiserror::Error;
-use anyhow::{Result, anyhow};
 
 const MB_URL: &str = "https://www.mercadobitcoin.net/api/";
 
@@ -349,7 +349,10 @@ impl MercadoBitcoin {
     }
 
     /// Retorna informações com o resumo das últimas 24 horas de negociações.
-    pub async fn ticker(&self, coin: Coin) -> Result<Ticker, MercadoBitCoinError> {
+    pub async fn ticker(
+        &self,
+        coin: Coin,
+    ) -> Result<Ticker, MercadoBitCoinError> {
         let coin_str = coin.as_ref();
         let method_str = "ticker";
         let url = format!("{}{}/{}/", MB_URL, coin_str, method_str);
@@ -423,8 +426,10 @@ impl MercadoBitcoin {
             date.day()
         );
 
-        if date.year() == now.year() && date.month() <= now.month() && date.day() < now.day() {
-
+        if date.year() == now.year()
+            && date.month() <= now.month()
+            && date.day() < now.day()
+        {
             let resp = self.call::<DaySummary>(&url).await?;
             Ok(resp)
         } else if date.year() < now.year() {
@@ -434,7 +439,6 @@ impl MercadoBitcoin {
             let date_str = format!("{}", date);
             return Err(MercadoBitCoinError::InvalidPeriod(date_str));
         }
-
     }
 
     async fn call<T>(&self, url: &str) -> Result<T, MercadoBitCoinError>
